@@ -8,31 +8,31 @@ from bs4 import BeautifulSoup as bs
 from flask import (Flask, request)
 from requests import get
 
-ORIGIN = "37.777092,-122.415891"
+DEFAULT_LOCATION = "37.777092,-122.415891"
 
 # Boy, it's a lot easier to hardcode these.
 CIVIC_CENTER = {
   'name': 'Civic Center',
   'loc': "37.779471,-122.413809",
-  'abbr':'civc',
-  'dir':'n',
-  'dest':['RICH'],
-  'alt':'PITT'
+  'abbr': 'civc',
+  'dir': 'n',
+  'dest': ['RICH'],
+  'alt': 'PITT'
 }
 
 BERKELEY = {
-  'name':'Downtown Berkeley',
-  'loc':"37.869842,-122.267986",
-  'abbr':'dbrk',
-  'dir':'s',
-  'dest':['MLBR','DALY'],
-  'alt':'FRMT'
+  'name': 'Downtown Berkeley',
+  'loc': '37.869842,-122.267986',
+  'abbr': 'dbrk',
+  'dir': 's',
+  'dest': ['MLBR', 'DALY'],
+  'alt': 'FRMT'
 }
 
 
 GOOGLE_URL = "http://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&sensor=false"
-BART_ETD   = "http://api.bart.gov/api/etd.aspx?cmd=etd&orig=%(abbr)s&dir=%(dir)s&key=MW9S-E7SL-26DU-VV8V"
-BART_ADV   = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&orig=%s&key=MW9S-E7SL-26DU-VV8V"
+BART_ETD = "http://api.bart.gov/api/etd.aspx?cmd=etd&orig=%(abbr)s&dir=%(dir)s&key=MW9S-E7SL-26DU-VV8V"
+BART_ADV = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&orig=%s&key=MW9S-E7SL-26DU-VV8V"
 
 app = Flask(__name__)
 
@@ -78,9 +78,11 @@ def get_trains(station):
   except:
     raise APIError("Couldn't get train estimates from BART")
   # XML is a god-awful language for an API.
-  etd = [e.parent for e in train_soup("abbreviation", text=lambda x: x in station['dest'])]
+  etd = [e.parent for e in train_soup("abbreviation",
+                                      text=lambda x: x in station['dest'])]
   if not etd:
-    etd = [e.parent for e in train_soup("abbreviation", text=lambda x: x == station['alt'])]
+    etd = [e.parent for e in train_soup("abbreviation",
+                                        text=lambda x: x == station['alt'])]
   if not etd:
     return [], "No trains running."
   trains = [(e.find('minutes').text, e.find('length').text) for e in etd[0]('estimate')]
