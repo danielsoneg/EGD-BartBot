@@ -87,18 +87,26 @@ def report_error(error):
 
 @app.route('/loc', methods=['POST'])
 def get_times():
-  try:
-    loc = request.form.get('loc', ORIGIN)
-    station = get_station(loc)
-    trains, line = get_trains(station)
-    return json.dumps({
-      'station': station['name'],
-      'abbr': station['abbr'],
-      'dest': line,
-      'trains': trains
-    })
-  except Exception as err:
-    logging.exception("Error!")
+  """Use posted location to retrieve closest station and departure times.
+
+  Params (POST):
+    loc: Latitude and Longitude, comma-separated.
+  Returns (JSON):
+    station: Name of closest station
+    abbr: Station abbreviation
+    dest: Line for train estimates
+    trains: List of estimated train departures and lengths
+  """
+  loc = request.form.get('loc', DEFAULT_LOCATION)
+  station = get_station(loc)
+  trains, line = get_trains(station)
+  return json.dumps({
+    'station': station['name'],
+    'abbr': station['abbr'],
+    'dest': line,
+    'trains': trains
+  })
+
 
 @app.route('/adv', methods=['POST'])
 def get_advisory():
