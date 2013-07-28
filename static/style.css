@@ -1,0 +1,57 @@
+body {
+  margin: 5px auto;
+  background: #000;
+  color: #fff;
+  width: 240px;
+  font-family: helvetica;
+  text-align: center;
+  font-size: 24pt;
+}
+#advs {
+  background: #b00;
+  color: #FFF;
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+  height: 1.2em;
+  display: none;
+  font-size:.5em;
+}
+h1 {
+  font-size: .9em;
+  margin: 0;
+  padding: 0;
+}
+h2 {
+  color: #999;
+  margin: 0;
+  padding: 0;
+  font-size: .7em;
+  font-weight: normal;
+}
+#first {
+  display: block;
+  font-size: 5em;
+  clear: both;
+}
+#second {
+  float: left;
+}
+#third {
+  float: right;
+}
+.time {
+  display: block;
+  padding: 0;
+  line-height: 1em;
+}
+.cars {
+  color: #999;
+  font-size: .3em;
+  padding: 0;
+  margin: 0;
+}
+.train {
+  font-size: 2em;
+  display: block;
+}
