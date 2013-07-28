@@ -6,6 +6,7 @@ showAdv = function(data) {
 }
 
 showTimes = function(data) {
+  $('#err').hide();
   $('h1').html(data.station);
   $('h2').html(data.dest);
   $.each(data.trains, function(i, train) {
@@ -16,6 +17,12 @@ showTimes = function(data) {
     dataType: 'json', success: showAdv});
 };
 
+showError = function(data) {
+  $('h1').html("ERROR");
+  $('#err #msg').html(data.responseText);
+  $('#err').css('display', 'block');
+}
+
 sendLocation = function(location) {
   /* Send lat/long to server */
   $.ajax({
@@ -23,7 +30,8 @@ sendLocation = function(location) {
    url: '/loc',
    data: "loc=" + location.coords.latitude + "," + location.coords.longitude,
    dataType: 'json',
-   success: showTimes
+   success: showTimes,
+   error: showError
   });
 };
 

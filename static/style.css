@@ -17,6 +17,22 @@ body {
   display: none;
   font-size:.5em;
 }
+#err #excl {
+  display: block;
+  font-size: 3em;
+  font-weight: bold;
+  color: #933;
+  clear: both;
+}
+#err {
+  padding: 5%;
+  font-size: .6em;
+  display: none;
+  background: #400;
+  width: 90%;
+  height: 6em;
+  clear: both;
+}
 h1 {
   font-size: .9em;
   margin: 0;
