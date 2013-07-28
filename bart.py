@@ -4,13 +4,8 @@ Eric's BART Mini-app
 """
 import json
 import logging
-import traceback
 from bs4 import BeautifulSoup as bs
-from flask import (
-    Flask,
-    render_template,
-    request,
-    )
+from flask import (Flask, request)
 from requests import get
 
 ORIGIN = "37.777092,-122.415891"
