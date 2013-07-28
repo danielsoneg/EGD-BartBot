@@ -37,15 +37,37 @@ BART_ADV   = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&orig=%s&key=MW9S-E7SL-26D
 
 app = Flask(__name__)
 
+
+class APIError(Exception):
+  """Raised when someone else screwed up"""
+
+
 def get_station(loc):
   dests = "%s|%s" % (CIVIC_CENTER['loc'], BERKELEY['loc'])
-  distances = json.loads(get(GOOGLE_URL % (loc, dests)).text)
-  distances = [d['distance']['value'] for d in distances['rows'][0]['elements']]
-  return CIVIC_CENTER if distances[0] > distances[1] else BERKELEY
+  try:
+    dist = json.loads(get(GOOGLE_URL % (loc, dests)).text)
+    dist = [d['distance']['value'] for d in dist['rows'][0]['elements']]
+  except:
+    raise APIError("Couldn't find the closest station")
+  return CIVIC_CENTER if dist[0] < dist[1] else BERKELEY
+
 
 def get_trains(station):
-  is_alt = False
-  train_soup = bs(get(BART_ETD % station).text)
+  """Find estimated departure times for the given station.
+
+  Uses BART's API, which returns XML for some godawful reason.
+
+  Params:
+    station: dictionary for station for which to fetch times
+  Returns:
+    (times, destination): Tuple: List of train times and lengths, name of line.
+  Raises:
+    APIError
+  """
+  try:
+    train_soup = bs(get(BART_ETD % station).text)
+  except:
+    raise APIError("Couldn't get train estimates from BART")
   # XML is a god-awful language for an API.
   etd = [e.parent for e in train_soup("abbreviation", text=lambda x: x in station['dest'])]
   if not etd:
@@ -54,6 +76,14 @@ def get_trains(station):
     return [], "No trains running."
   trains = [(e.find('minutes').text, e.find('length').text) for e in etd[0]('estimate')]
   return trains, etd[0].find('destination').text
+
+
+@app.errorhandler(APIError)
+def report_error(error):
+  """Report API failure messages"""
+  logging.exception(error.args[0], error)
+  return error.args[0], 500
+
 
 @app.route('/loc', methods=['POST'])
 def get_times():
