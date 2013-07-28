@@ -134,9 +134,11 @@ def get_advisory():
   try:
     stn = request.form.get('stn')
     adv = bs(get(BART_ADV % stn).text)
-    return json.dumps({'adv': adv.find('sms_text').text})
-  except Exception as err:
-    logging.exception("Error!!")
+    msg = adv.find('sms_text').text
+  except:
+    # Don't want to raise any errors from this call
+    msg = ''
+  return json.dumps({'adv': msg})
 
 if __name__ == "__main__":
   app.debug = True
