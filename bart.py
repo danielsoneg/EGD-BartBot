@@ -138,5 +138,4 @@ def get_advisory():
   return json.dumps({'adv': msg})
 
 if __name__ == "__main__":
-  app.debug = True
   app.run()
