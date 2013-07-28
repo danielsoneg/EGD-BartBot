@@ -1,3 +1,7 @@
+#!/usr/bin/env python2.7
+"""
+Eric's BART Mini-app
+"""
 import json
 import logging
 import traceback
@@ -43,6 +47,16 @@ class APIError(Exception):
 
 
 def get_station(loc):
+  """Find the closest station location.
+
+  Uses Google DistanceMatrix, which is why the logic is a bit torturous.
+  Params:
+    loc: latitude and longitude, comma separated string
+  Returns:
+    station: dictionary with details about the closest station
+  Raises:
+    APIError
+  """
   dests = "%s|%s" % (CIVIC_CENTER['loc'], BERKELEY['loc'])
   try:
     dist = json.loads(get(GOOGLE_URL % (loc, dests)).text)
@@ -110,6 +124,13 @@ def get_times():
 
 @app.route('/adv', methods=['POST'])
 def get_advisory():
+  """Get current advisories for the posted station.
+
+  Params (POST):
+    stn: Station abbreviation
+  Returns (JSON):
+    adv: Current BART Advisory, or empty string if none.
+  """
   try:
     stn = request.form.get('stn')
     adv = bs(get(BART_ADV % stn).text)
