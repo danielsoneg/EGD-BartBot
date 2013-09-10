@@ -6,14 +6,15 @@ import json
 import logging
 from bs4 import BeautifulSoup as bs
 from flask import (Flask, request)
+from math import (asin, cos, radians, sin, sqrt)
 from requests import get
 
-DEFAULT_LOCATION = "37.777092,-122.415891"
+DEFAULT_LAT, DEFAULT_LON = 37.777092, -122.415891
 
 # Boy, it's a lot easier to hardcode these.
 CIVIC_CENTER = {
   'name': 'Civic Center',
-  'loc': "37.779471,-122.413809",
+  'loc': (37.779471, -122.413809),
   'abbr': 'civc',
   'dir': 'n',
   'dest': ['RICH'],
@@ -22,43 +23,46 @@ CIVIC_CENTER = {
 
 BERKELEY = {
   'name': 'Downtown Berkeley',
-  'loc': '37.869842,-122.267986',
+  'loc': (37.869842, -122.267986),
   'abbr': 'dbrk',
   'dir': 's',
   'dest': ['MLBR', 'DALY'],
   'alt': 'FRMT'
 }
 
-
-GOOGLE_URL = "http://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&sensor=false"
 BART_ETD = "http://api.bart.gov/api/etd.aspx?cmd=etd&orig=%(abbr)s&dir=%(dir)s&key=MW9S-E7SL-26DU-VV8V"
 BART_ADV = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&orig=%s&key=MW9S-E7SL-26DU-VV8V"
 
 app = Flask(__name__)
 
 
+def dist(from_lat, from_lon, to_lat, to_lon):
+  """Modified Haversine. Doesn't return the actual distance, just magnitude."""
+  from_lat, to_lat = radians(from_lat), radians(to_lat)
+  d_lat = (to_lat - from_lat) / 2
+  d_lon = radians(to_lon - from_lon) / 2
+  haversin = sin(d_lat) ** 2 + cos(to_lat) * cos(from_lat) * sin(d_lon) ** 2
+  return asin(sqrt(haversin))
+
+
 class APIError(Exception):
   """Raised when someone else screwed up"""
 
 
-def get_station(loc):
+def get_station(lat, lon):
   """Find the closest station location.
 
-  Uses Google DistanceMatrix, which is why the logic is a bit torturous.
   Params:
-    loc: latitude and longitude, comma separated string
+    lat: Latitude as a float
+    lon: Longitude as a float
   Returns:
     station: dictionary with details about the closest station
-  Raises:
-    APIError
   """
-  dests = "%s|%s" % (CIVIC_CENTER['loc'], BERKELEY['loc'])
-  try:
-    dist = json.loads(get(GOOGLE_URL % (loc, dests)).text)
-    dist = [d['distance']['value'] for d in dist['rows'][0]['elements']]
-  except:
-    raise APIError("Couldn't find the closest station")
-  return CIVIC_CENTER if dist[0] < dist[1] else BERKELEY
+  berk_dist = dist(lat, lon, *BERKELEY['loc'])
+  print berk_dist
+  civic_dist = dist(lat, lon, *CIVIC_CENTER['loc'])
+  print civic_dist
+  return CIVIC_CENTER if civic_dist < berk_dist else BERKELEY
 
 
 def get_trains(station):
@@ -85,7 +89,8 @@ def get_trains(station):
                                         text=lambda x: x == station['alt'])]
   if not etd:
     return [], "No trains running."
-  trains = [(e.find('minutes').text, e.find('length').text) for e in etd[0]('estimate')]
+  trains = [(e.find('minutes').text, e.find('length').text)
+            for e in etd[0]('estimate')]
   return trains, etd[0].find('destination').text
 
 
@@ -108,8 +113,12 @@ def get_times():
     dest: Line for train estimates
     trains: List of estimated train departures and lengths
   """
-  loc = request.form.get('loc', DEFAULT_LOCATION)
-  station = get_station(loc)
+  try:
+    lat = float(request.form.get('lat', DEFAULT_LAT))
+    lon = float(request.form.get('lon', DEFAULT_LAT))
+  except ValueError:
+    raise ValueError("Non-numeric location given")
+  station = get_station(lat, lon)
   trains, line = get_trains(station)
   return json.dumps({
     'station': station['name'],
