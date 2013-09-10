@@ -28,7 +28,7 @@ sendLocation = function(location) {
   $.ajax({
    type: "POST",
    url: '/loc',
-   data: "loc=" + location.coords.latitude + "," + location.coords.longitude,
+   data: "lat=" + location.coords.latitude + "&lon=" + location.coords.longitude,
    dataType: 'json',
    success: showTimes,
    error: showError
