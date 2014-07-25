@@ -137,13 +137,15 @@ def get_advisory():
   Returns (JSON):
     adv: Current BART Advisory, or empty string if none.
   """
+  msg = ''
   try:
     stn = request.form.get('stn')
     adv = bs(get(BART_ADV).text)
-    msg = adv.find('sms_text').text
+    if adv.find('type'):
+      msg = adv.find('sms_text').text
   except:
     # Don't want to raise any errors from this call
-    msg = ''
+    pass
   return json.dumps({'adv': msg})
 
 if __name__ == "__main__":
