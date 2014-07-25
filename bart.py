@@ -31,7 +31,7 @@ BERKELEY = {
 }
 
 BART_ETD = "http://api.bart.gov/api/etd.aspx?cmd=etd&orig=%(abbr)s&dir=%(dir)s&key=MW9S-E7SL-26DU-VV8V"
-BART_ADV = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&orig=%s&key=MW9S-E7SL-26DU-VV8V"
+BART_ADV = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&key=MW9S-E7SL-26DU-VV8V"
 
 app = Flask(__name__)
 
@@ -139,7 +139,7 @@ def get_advisory():
   """
   try:
     stn = request.form.get('stn')
-    adv = bs(get(BART_ADV % stn).text)
+    adv = bs(get(BART_ADV).text)
     msg = adv.find('sms_text').text
   except:
     # Don't want to raise any errors from this call
