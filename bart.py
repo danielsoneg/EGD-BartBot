@@ -59,9 +59,7 @@ def get_station(lat, lon):
     station: dictionary with details about the closest station
   """
   berk_dist = dist(lat, lon, *BERKELEY['loc'])
-  print berk_dist
   civic_dist = dist(lat, lon, *CIVIC_CENTER['loc'])
-  print civic_dist
   return CIVIC_CENTER if civic_dist < berk_dist else BERKELEY
 
 
